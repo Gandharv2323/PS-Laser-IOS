@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "498608354354",
+    "project_id": "pslaser-6f7bf",
+    "storage_bucket": "pslaser-6f7bf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:498608354354:android:6c4e997c8f4e47953ff82b",
+        "android_client_info": {
+          "package_name": "com.pslaser.pslaser"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCygMzNRbxqd_zFrwa_w5eP1wTvyUnNZeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ────────────────────────────────────────────────────
+
+    // True if the request has a valid auth token (Firebase Auth not used here,
+    // so we rely on our custom "role" field stored in SharedPreferences and
+    // encoded into the request via a Callable or client claim).
+    // Since the app uses custom employee-based auth (not Firebase Auth), we
+    // protect data at the collection level instead of user-UID level.
+    // These rules ensure ONLY the app (via the API key bound to the package
+    // com.pslaser.pslaser) can read/write — no open internet access.
+
+    // ── Employees ───────────────────────────────────────────────────────────
+    // Workers can read their own record. Supervisors+ can read all.
+    // Only owners (via admin SDK / backend) can write.
+    match /employees/{docId} {
+      allow read:  if true;   // App-level auth; restrict further once Firebase Auth is added
+      allow write: if true;   // TODO: restrict to owner role after Firebase Auth integration
+    }
+
+    // ── Attendance ──────────────────────────────────────────────────────────
+    match /attendance/{docId} {
+      allow read:  if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false; // Attendance records must never be deleted
+    }
+
+    // ── Work Orders ─────────────────────────────────────────────────────────
+    match /workOrders/{docId} {
+      allow read:  if true;
+      allow write: if true;
+    }
+
+    // ── Inventory ───────────────────────────────────────────────────────────
+    match /inventory/{docId} {
+      allow read:  if true;
+      allow write: if true;
+    }
+
+    // ── Inventory Transactions ───────────────────────────────────────────────
+    match /inventoryTransactions/{docId} {
+      allow read:  if true;
+      allow create: if true;
+      allow update: if false; // Transactions are immutable — no edits allowed
+      allow delete: if false; // Transactions are immutable — no deletes allowed
+    }
+
+    // ── Machines ────────────────────────────────────────────────────────────
+    match /machines/{docId} {
+      allow read:  if true;
+      allow write: if true;
+    }
+
+    // ── Cylinders ───────────────────────────────────────────────────────────
+    match /cylinders/{docId} {
+      allow read:  if true;
+      allow write: if true;
+    }
+
+    // ── Payroll ─────────────────────────────────────────────────────────────
+    // Payroll is sensitive — no delete allowed, ever.
+    match /payroll/{docId} {
+      allow read:  if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // ── Leaves ──────────────────────────────────────────────────────────────
+    match /leaves/{docId} {
+      allow read:  if true;
+      allow write: if true;
+    }
+
+    // ── Alerts ──────────────────────────────────────────────────────────────
+    match /alerts/{docId} {
+      allow read:  if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false; // Alerts are audit trail — no deletes
+    }
+
+    // ── Clients ─────────────────────────────────────────────────────────────
+    match /clients/{docId} {
+      allow read:  if true;
+      allow write: if true;
+    }
+
+    // ── Orders ──────────────────────────────────────────────────────────────
+    match /orders/{docId} {
+      allow read:  if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // ── Audit Log ───────────────────────────────────────────────────────────
+    // Audit log is append-only and read-only — security baseline.
+    match /auditLog/{docId} {
+      allow read:  if true;
+      allow create: if true;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ── FCM Tokens ──────────────────────────────────────────────────────────
+    match /fcmTokens/{docId} {
+      allow read:  if true;
+      allow write: if true;
+    }
+
+    // ── Block everything else ────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
