@@ -15,6 +15,7 @@ class InventoryDetailScreen extends StatefulWidget {
 class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
   Map<String, dynamic>? _item;
   List<Map<String, dynamic>> _transactions = [];
+  String? _error;
 
   @override
   void initState() {
@@ -24,27 +25,78 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
 
   Future<void> _load() async {
     if (!mounted) return;
-    final doc = await FirestoreService.inventory.doc(widget.itemId).get();
-    if (doc.exists) {
-      final txnSnap = await FirestoreService.inventoryTransactions
-          .where('item_id', isEqualTo: widget.itemId)
-          .orderBy('created_at', descending: true)
-          .limit(10)
-          .get();
-      if (mounted) {
-        setState(() {
-          _item = FirestoreService.docToMap(doc);
-          _transactions = txnSnap.docs.map(FirestoreService.docToMap).toList();
-        });
+    try {
+      final doc =
+          await FirestoreService.inventory.doc(widget.itemId).get();
+      if (!mounted) return;
+      if (!doc.exists) {
+        setState(() => _error = 'Item not found (id: ${widget.itemId})');
+        return;
       }
+      // Load item first — always works
+      final itemData = FirestoreService.docToMap(doc);
+
+      // Load transactions separately — needs Firestore composite index
+      List<Map<String, dynamic>> txns = [];
+      try {
+        final txnSnap = await FirestoreService.inventoryTransactions
+            .where('item_id', isEqualTo: widget.itemId)
+            .orderBy('created_at', descending: true)
+            .limit(10)
+            .get();
+        txns = txnSnap.docs.map(FirestoreService.docToMap).toList();
+      } catch (_) {
+        // Index not yet created — transactions show as empty
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _item = itemData;
+        _transactions = txns;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Error loading item: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // ── Error state ─────────────────────────────────────────────────────────
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: BackButton(onPressed: () => context.go('/inventory')),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  _error!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => context.go('/inventory'),
+                  child: const Text('Back to Inventory'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    // ── Loading state ────────────────────────────────────────────────────────
     if (_item == null) {
       return Scaffold(
-        appBar: AppBar(),
+        appBar: AppBar(
+          leading: BackButton(onPressed: () => context.go('/inventory')),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }

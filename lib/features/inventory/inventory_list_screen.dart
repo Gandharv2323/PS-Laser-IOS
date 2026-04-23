@@ -222,21 +222,25 @@ class _InventoryCard extends StatelessWidget {
         ? AppTheme.accentYellow
         : AppTheme.statusRunning;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isLow
-              ? AppTheme.accentRed.withValues(alpha: 0.4)
-              : (isDark ? AppTheme.darkBorder : const Color(0xFFE5E7EB)),
-        ),
-      ),
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
       child: InkWell(
+        borderRadius: BorderRadius.circular(12),
         onTap: () => context.go('/inventory/detail/${item['id']}'),
-        child: Column(
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.darkCard : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isLow
+                  ? AppTheme.accentRed.withValues(alpha: 0.4)
+                  : (isDark ? AppTheme.darkBorder : const Color(0xFFE5E7EB)),
+            ),
+          ),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -318,6 +322,7 @@ class _InventoryCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

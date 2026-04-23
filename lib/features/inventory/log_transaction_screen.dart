@@ -97,19 +97,36 @@ class _LogTransactionScreenState extends State<LogTransactionScreen> {
         'current_qty': newQty,
         'last_transaction_date': DateTime.now().toString().substring(0, 10),
       });
-      // 🔔 Fire low-stock push alert if below reorder level
+
+      // ── Auto Alert Logic ──────────────────────────────────────────────────
       final reorderLevel = (item['reorder_level'] as num? ?? 0).toDouble();
-      if (newQty <= reorderLevel) {
-        final itemName = item['name'] as String? ?? 'Item';
+      final itemName = item['name'] as String? ?? 'Item';
+      final unit = item['unit'] as String? ?? 'units';
+
+      if (newQty <= 0) {
+        // 🔴 CRITICAL: Stock completely finished
         await NotificationService.triggerAlert(
-          title: '⚠️ Low Stock Alert',
-          body: '$itemName is at ${newQty.toStringAsFixed(0)} ${item['unit'] ?? 'units'} '
-              '(reorder level: ${reorderLevel.toStringAsFixed(0)}). Reorder immediately.',
+          title: '🔴 OUT OF STOCK: $itemName',
+          body:
+              '$itemName ka stock ZERO ho gaya hai! '
+              'Turant order karo. (Reorder level: ${reorderLevel.toStringAsFixed(0)} $unit)',
+          type: 'LOW_STOCK',
+          route: '/inventory',
+          relatedId: _selectedItem,
+        );
+      } else if (newQty <= reorderLevel) {
+        // 🟡 WARNING: Stock low but not zero
+        await NotificationService.triggerAlert(
+          title: '⚠️ Low Stock: $itemName',
+          body:
+              '$itemName sirf ${newQty.toStringAsFixed(0)} $unit bacha hai. '
+              'Reorder level: ${reorderLevel.toStringAsFixed(0)} $unit. Jaldi order karo!',
           type: 'LOW_STOCK',
           route: '/inventory',
           relatedId: _selectedItem,
         );
       }
+
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transaction logged.')));
