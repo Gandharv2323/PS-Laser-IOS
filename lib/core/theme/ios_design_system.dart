@@ -70,9 +70,9 @@ class PSColors {
   static const Color textLight3 = Color(0xFF8E8E93);
 
   // ── Glassmorphism ──────────────────────────────────────────────────
-  static Color glassLight = Colors.white.withOpacity(0.08);
-  static Color glassBorder = Colors.white.withOpacity(0.12);
-  static Color glassDark = Colors.black.withOpacity(0.40);
+  static Color glassLight = Colors.white.withAlpha(20);
+  static Color glassBorder = Colors.white.withAlpha(31);
+  static Color glassDark = Colors.black.withAlpha(102);
 
   // ── Gradients ──────────────────────────────────────────────────────
   static const LinearGradient brandGradient = LinearGradient(
@@ -132,8 +132,8 @@ class PSColors {
     }
   }
 
-  static Color bgForStatus(String status) => forStatus(status).withOpacity(0.15);
-  static Color bgForPriority(String priority) => forPriority(priority).withOpacity(0.15);
+  static Color bgForStatus(String status) => forStatus(status).withAlpha(38);
+  static Color bgForPriority(String priority) => forPriority(priority).withAlpha(38);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -308,7 +308,7 @@ class GlassCard extends StatelessWidget {
           padding: padding ?? PSSpacing.cardPadding,
           decoration: BoxDecoration(
             color: backgroundColor ??
-                (isDark ? PSColors.glassLight : Colors.white.withOpacity(0.7)),
+                (isDark ? PSColors.glassLight : Colors.white.withAlpha(179)),
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
               color: borderColor ??
@@ -399,9 +399,9 @@ class PSPriorityBadge extends StatelessWidget {
         vertical: compact ? 2 : 4,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withAlpha(38),
         borderRadius: BorderRadius.circular(PSRadius.full),
-        border: Border.all(color: color.withOpacity(0.4), width: 0.5),
+        border: Border.all(color: color.withAlpha(102), width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -467,9 +467,9 @@ class PSStatusBadge extends StatelessWidget {
         vertical: compact ? 2 : 4,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withAlpha(38),
         borderRadius: BorderRadius.circular(PSRadius.full),
-        border: Border.all(color: color.withOpacity(0.4), width: 0.5),
+        border: Border.all(color: color.withAlpha(102), width: 0.5),
       ),
       child: Text(
         label,
@@ -527,7 +527,7 @@ class PSMetricCard extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
+                    color: color.withAlpha(38),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: color, size: 17),
@@ -660,11 +660,11 @@ class _PSLiveIndicatorState extends State<PSLiveIndicator>
         width: widget.size,
         height: widget.size,
         decoration: BoxDecoration(
-          color: widget.color.withOpacity(_animation.value),
+          color: widget.color.withAlpha((_animation.value * 255).round()),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: widget.color.withOpacity(_animation.value * 0.5),
+              color: widget.color.withAlpha((_animation.value * 128).round()),
               blurRadius: widget.size,
               spreadRadius: widget.size * 0.3,
             ),

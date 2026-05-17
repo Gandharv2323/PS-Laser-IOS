@@ -322,7 +322,7 @@ class _AnimatedFabState extends State<_AnimatedFab>
               borderRadius: BorderRadius.circular(PSRadius.md),
               boxShadow: [
                 BoxShadow(
-                  color: PSColors.brand.withOpacity(0.4),
+                  color: PSColors.brand.withAlpha(102),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
