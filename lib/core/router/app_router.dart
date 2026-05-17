@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
 import '../../features/dashboard/dashboard_screen.dart';
+import '../../features/dashboard/command_center_screen.dart';
 import '../../features/inventory/inventory_qr_scan_screen.dart';
 import '../../features/inventory/inventory_list_screen.dart';
 import '../../features/inventory/inventory_detail_screen.dart';
@@ -64,7 +65,7 @@ class AppRouter {
             GoRoute(
               path: '/dashboard',
               name: 'dashboard',
-              builder: (ctx, state) => const DashboardScreen(),
+              builder: (ctx, state) => const CommandCenterScreen(),
             ),
             GoRoute(
               path: '/inventory',
