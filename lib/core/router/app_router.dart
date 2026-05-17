@@ -23,6 +23,13 @@ import '../../features/settings/backup_restore_screen.dart';
 import '../../features/ai_chat/forgeops_chat_screen.dart';
 import '../../features/shell/main_shell.dart';
 import '../providers/session_provider.dart';
+// ── Phase 2: Order Control System ─────────────────────────────────
+import '../../features/orders/order_list_screen.dart';
+import '../../features/orders/add_order_screen.dart';
+import '../../features/orders/order_detail_screen.dart';
+import '../../features/orders/voice_order_screen.dart';
+// ── Phase 5: Calendar ─────────────────────────────────────────────
+import '../../features/calendar/calendar_screen.dart';
 
 class AppRouter {
   static GoRouter createRouter(SessionProvider sessionProvider) {
@@ -264,6 +271,44 @@ class AppRouter {
                   builder: (ctx, state) => const WorkOrderReportScreen(),
                 ),
               ],
+            ),
+            // ── Order Control System ───────────────────────────────────────
+            GoRoute(
+              path: '/orders',
+              name: 'orders',
+              builder: (ctx, state) => const OrderListScreen(),
+              routes: [
+                GoRoute(
+                  path: 'add',
+                  name: 'order-add',
+                  builder: (ctx, state) {
+                    final clientId = state.uri.queryParameters['clientId'];
+                    final clientName = state.uri.queryParameters['clientName'];
+                    return AddOrderScreen(
+                      preselectedClientId: clientId,
+                      preselectedClientName: clientName,
+                    );
+                  },
+                ),
+                GoRoute(
+                  path: 'detail/:id',
+                  name: 'order-detail',
+                  builder: (ctx, state) => OrderDetailScreen(
+                    orderId: state.pathParameters['id']!,
+                  ),
+                ),
+                GoRoute(
+                  path: 'voice',
+                  name: 'order-voice',
+                  builder: (ctx, state) => const VoiceOrderScreen(),
+                ),
+              ],
+            ),
+            // ── Calendar Timeline ─────────────────────────────────────────
+            GoRoute(
+              path: '/calendar',
+              name: 'calendar',
+              builder: (ctx, state) => const CalendarScreen(),
             ),
             GoRoute(
               path: '/alerts',

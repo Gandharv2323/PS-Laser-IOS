@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'core/config/env_config.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/session_provider.dart';
 import 'core/providers/theme_provider.dart';
@@ -11,22 +12,6 @@ import 'core/router/app_router.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/secure_storage_service.dart';
 import 'firebase_options.dart';
-
-// ── Permanently embedded OpenRouter API key ────────────────────────────────
-// Written once to encrypted secure storage on first launch.
-// Update this value here whenever the key changes — no UI action needed.
-const _kOpenRouterApiKey =
-    ''; // TODO: Replace with your OpenRouter API key
-
-/// Writes the API key to secure storage if it has not been stored yet.
-/// Safe to call on every launch — it is a no-op after the first write.
-Future<void> _ensureApiKey() async {
-  final stored = await SecureStorageService.getOpenRouterKey();
-  if (stored == null || stored.trim().isEmpty) {
-    await SecureStorageService.setOpenRouterKey(_kOpenRouterApiKey);
-    debugPrint('✅ OpenRouter API key initialised from build config.');
-  }
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,25 +22,25 @@ void main() async {
   };
 
   try {
-    // ── Initialize Firebase ────────────────────────────────────────────────────
+    // ── Firebase ──────────────────────────────────────────────────────────────
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // ── Enable Firestore offline persistence ───────────────────────────────────
+    // ── Firestore offline persistence ─────────────────────────────────────────
     FirebaseFirestore.instance.settings = const Settings(
       persistenceEnabled: true,
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
     );
 
-    // ── Load session ───────────────────────────────────────────────────────────
+    // ── Session ───────────────────────────────────────────────────────────────
     final sessionProvider = SessionProvider();
     await sessionProvider.loadSession();
 
-    // ── Embed API key permanently (first-boot write, no-op thereafter) ─────────
+    // ── API Key (from --dart-define, falls back to secure storage) ────────────
     await _ensureApiKey();
 
-    // ── Initialize push notifications (non-fatal if it fails) ─────────────────
+    // ── Push Notifications ────────────────────────────────────────────────────
     try {
       await NotificationService.init(
         employeeId: sessionProvider.session.isLoggedIn
@@ -66,6 +51,7 @@ void main() async {
       debugPrint('⚠️ NotificationService init failed: $e');
     }
 
+    // ── Orientation (all directions for iPad compatibility) ───────────────────
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -73,56 +59,46 @@ void main() async {
       DeviceOrientation.landscapeRight,
     ]);
 
-    runApp(ForgeOpsApp(sessionProvider: sessionProvider));
+    runApp(PSLaserApp(sessionProvider: sessionProvider));
   } catch (e, stack) {
     debugPrint('🚨 Fatal startup error: $e\n$stack');
-    runApp(
-      MaterialApp(
-        home: Scaffold(
-          backgroundColor: Colors.red[900],
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Startup Error', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Text('$e', style: const TextStyle(color: Colors.white)),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Text('$stack', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    runApp(_ErrorApp(error: e.toString()));
   }
 }
 
-
-class ForgeOpsApp extends StatefulWidget {
-  final SessionProvider sessionProvider;
-  const ForgeOpsApp({super.key, required this.sessionProvider});
-
-  @override
-  State<ForgeOpsApp> createState() => _ForgeOpsAppState();
+/// Writes the API key to secure storage if it has not been stored yet.
+/// Key comes from --dart-define at build time. Safe to call every launch.
+Future<void> _ensureApiKey() async {
+  if (!EnvConfig.hasAiKey) {
+    debugPrint('⚠️ No OpenRouter API key configured via --dart-define.');
+    return;
+  }
+  final stored = await SecureStorageService.getOpenRouterKey();
+  if (stored == null || stored.trim().isEmpty) {
+    await SecureStorageService.setOpenRouterKey(EnvConfig.openRouterApiKey);
+    debugPrint('✅ OpenRouter API key initialised from build config.');
+  }
 }
 
-class _ForgeOpsAppState extends State<ForgeOpsApp> {
+// ══════════════════════════════════════════════════════════════════════════════
+// Root App Widget
+// ══════════════════════════════════════════════════════════════════════════════
+
+class PSLaserApp extends StatefulWidget {
+  final SessionProvider sessionProvider;
+  const PSLaserApp({super.key, required this.sessionProvider});
+
+  @override
+  State<PSLaserApp> createState() => _PSLaserAppState();
+}
+
+class _PSLaserAppState extends State<PSLaserApp> {
   late final GoRouter _router;
 
   @override
   void initState() {
     super.initState();
-    // Create the router ONCE — it listens to sessionProvider via refreshListenable
-    // so redirects fire automatically on login/logout without recreating the router.
+    // Create the router ONCE — reacts to sessionProvider via refreshListenable.
     _router = AppRouter.createRouter(widget.sessionProvider);
   }
 
@@ -142,7 +118,7 @@ class _ForgeOpsAppState extends State<ForgeOpsApp> {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
           return MaterialApp.router(
-            title: 'ForgeOps AI',
+            title: 'PS LASER',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
@@ -150,6 +126,52 @@ class _ForgeOpsAppState extends State<ForgeOpsApp> {
             routerConfig: _router,
           );
         },
+      ),
+    );
+  }
+}
+
+// ── Fatal error fallback ──────────────────────────────────────────────────────
+
+class _ErrorApp extends StatelessWidget {
+  final String error;
+  const _ErrorApp({required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: const Color(0xFF0D0D0D),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.error_outline, color: Color(0xFFFF2D55), size: 48),
+                const SizedBox(height: 16),
+                const Text(
+                  'Startup Error',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Text(
+                      error,
+                      style: const TextStyle(color: Color(0xFFAEAEB2), fontSize: 13),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
