@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:printing/printing.dart';
 import '../../core/models/models.dart';
 import '../../core/services/order_engine.dart';
+import '../../core/services/pdf_service.dart';
 import '../../core/theme/ios_design_system.dart';
 import '../../core/utils/date_utils.dart';
 import '../../core/providers/session_provider.dart';
@@ -166,6 +168,20 @@ class _OrderDetailViewState extends State<_OrderDetailView> {
               onPressed: () => context.pop(),
             ),
             actions: [
+              // PDF Docket button
+              IconButton(
+                icon: const Icon(Icons.picture_as_pdf_rounded, color: PSColors.neonCyan),
+                tooltip: 'Generate PDF Docket',
+                onPressed: () async {
+                  HapticFeedback.lightImpact();
+                  final pdfBytes = await PdfService.generateOrderDocket(order);
+                  if (!context.mounted) return;
+                  await Printing.layoutPdf(
+                    onLayout: (_) => pdfBytes,
+                    name: 'PS-Laser-Order-${order.id.substring(0, 8)}',
+                  );
+                },
+              ),
               if (isActive)
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert_rounded),

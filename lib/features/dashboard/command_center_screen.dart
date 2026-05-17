@@ -451,6 +451,12 @@ class _QuickActionsSection extends StatelessWidget {
       route: '/orders/add',
     ),
     _QuickAction(
+      label: 'Voice Order',
+      icon: Icons.mic_rounded,
+      color: PSColors.neonGreen,
+      route: '/orders/voice',
+    ),
+    _QuickAction(
       label: 'AI Chat',
       icon: Icons.psychology_rounded,
       color: PSColors.neonPurple,
