@@ -30,6 +30,8 @@ import '../../features/orders/order_detail_screen.dart';
 import '../../features/orders/voice_order_screen.dart';
 // ── Phase 5: Calendar ─────────────────────────────────────────────
 import '../../features/calendar/calendar_screen.dart';
+// ── Phase 6: Analytics ────────────────────────────────────────────
+import '../../features/reports/production_analytics_screen.dart';
 
 class AppRouter {
   static GoRouter createRouter(SessionProvider sessionProvider) {
@@ -245,6 +247,12 @@ class AppRouter {
               name: 'reports',
               builder: (ctx, state) => const ReportsHubScreen(),
               routes: [
+                GoRoute(
+                  path: 'analytics',
+                  name: 'production-analytics',
+                  builder: (ctx, state) =>
+                      const ProductionAnalyticsScreen(),
+                ),
                 GoRoute(
                   path: 'attendance',
                   name: 'attendance-report',
