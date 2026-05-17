@@ -24,6 +24,15 @@ class FirestoreService {
   static CollectionReference get alerts => _db.collection('alerts');
   static CollectionReference get auditLog => _db.collection('auditLog');
 
+  // ── Phase 2: Order Control System ─────────────────────────────────────────
+  static CollectionReference get orderStatusHistory =>
+      _db.collection('orderStatusHistory');
+  static CollectionReference get orderAttachments =>
+      _db.collection('orderAttachments');
+  static CollectionReference get notifications =>
+      _db.collection('notifications');
+
+
   // ────────────────────────────────────────────────────────────────────────────
   // EMPLOYEES
   // ────────────────────────────────────────────────────────────────────────────

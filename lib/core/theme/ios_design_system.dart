@@ -616,11 +616,13 @@ class PSSectionHeader extends StatelessWidget {
 class PSLiveIndicator extends StatefulWidget {
   final Color color;
   final double size;
+  final String? label;
 
   const PSLiveIndicator({
     super.key,
     this.color = PSColors.neonGreen,
     this.size = 8,
+    this.label,
   });
 
   @override
@@ -652,7 +654,7 @@ class _PSLiveIndicatorState extends State<PSLiveIndicator>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
+    final dot = AnimatedBuilder(
       animation: _animation,
       builder: (_, __) => Container(
         width: widget.size,
@@ -670,5 +672,22 @@ class _PSLiveIndicatorState extends State<PSLiveIndicator>
         ),
       ),
     );
+
+    if (widget.label != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          dot,
+          const SizedBox(width: 4),
+          Text(
+            widget.label!,
+            style: PSText.caption(color: widget.color)
+                .copyWith(fontWeight: FontWeight.w700),
+          ),
+        ],
+      );
+    }
+    return dot;
   }
+
 }
