@@ -53,7 +53,7 @@ class _QrCheckinScreenState extends State<QrCheckinScreen> {
       employeeId = raw;
     }
 
-    if (employeeId != null && employeeId.isNotEmpty) {
+    if (employeeId.isNotEmpty) {
       final empDoc = await FirestoreService.employees.doc(employeeId).get();
       if (empDoc.exists) {
         final emp = FirestoreService.docToMap(empDoc);

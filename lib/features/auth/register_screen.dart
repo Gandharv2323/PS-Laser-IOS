@@ -281,7 +281,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: _selectedRole,
+                        initialValue: _selectedRole,
                         onChanged: (value) =>
                             setState(() => _selectedRole = value!),
                         decoration: _buildInputDecoration(
@@ -313,7 +313,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: _selectedShift,
+                        initialValue: _selectedShift,
                         onChanged: (value) =>
                             setState(() => _selectedShift = value!),
                         decoration: _buildInputDecoration(

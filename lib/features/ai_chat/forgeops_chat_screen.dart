@@ -179,11 +179,15 @@ class _ForgeOpsChatScreenState extends State<ForgeOpsChatScreen> {
   }) async {
     final systemPrompt = '''You are ForgeOps AI, an intelligent assistant embedded inside a manufacturing ERP system for PS Laser Industries.
 
-Your role: Analyse the local database context provided and give a clear, professional, and concise response to the user's question. 
+CRITICAL RULE — LANGUAGE: You MUST ALWAYS respond in ENGLISH ONLY. 
+Do NOT use Korean, Spanish, Hindi, French, Japanese, or any other language under ANY circumstances.
+Even if the user writes in another language, your reply must be in English. No exceptions.
+
+Your role: Analyse the local database context provided and give a clear, professional, and concise response to the user's question.
 - Always use the local context as the primary source of truth.
 - If data is missing or insufficient, say so honestly.
 - Use bullet points for lists. Be direct — no unnecessary filler.
-- Respond in the same language the user writes in.
+- ALWAYS write your response in English only.
 
 Current Local Database Context:
 $localContext''';
@@ -233,8 +237,10 @@ $localContext''';
     // Read API key from encrypted secure storage
     final apiKey = await SecureStorageService.getOpenRouterKey() ?? '';
 
+    // API key is always embedded via main.dart _ensureApiKey() at startup.
+    // If somehow still empty, fall back to local data gracefully.
     if (apiKey.trim().isEmpty) {
-      return '$localContext\n\n⚙️ Tip: Add your OpenRouter API key in Settings → AI Integration for enhanced AI responses.';
+      return localContext;
     }
 
     try {
@@ -351,13 +357,7 @@ $localContext''';
         ),
         leading: BackButton(
           color: Colors.white,
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              context.go('/dashboard');
-            }
-          },
+          onPressed: () => context.go('/dashboard'),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),

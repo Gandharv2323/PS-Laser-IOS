@@ -107,11 +107,17 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> logout() async {
+  /// Clears session data and signals GoRouter to redirect.
+  /// Call [onLoggedOut] after awaiting to imperatively navigate to /login
+  /// — this is more reliable on mobile than relying solely on refreshListenable.
+  Future<void> logout({VoidCallback? onLoggedOut}) async {
     await SecureAuthService.logout();
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     _session = UserSession.empty;
+    // Navigate first (before notifyListeners) so the route change
+    // is already in flight when GoRouter re-evaluates the redirect guard.
+    onLoggedOut?.call();
     notifyListeners();
   }
 }

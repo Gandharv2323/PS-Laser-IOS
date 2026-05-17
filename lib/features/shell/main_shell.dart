@@ -45,77 +45,86 @@ class _MainShellState extends State<MainShell> {
     final location = GoRouterState.of(context).matchedLocation;
     final isMainRoute = _routes.contains(location);
 
+    // AI FAB: only visible on the dashboard screen
+    final isOnDashboard = location == '/dashboard';
+    // Bottom nav: hidden on AI chat so the message send bar has full space
+    final isOnAiChat = location == '/ai-chat';
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-
-        // If we're in a main route, go to dashboard, otherwise show exit dialog
         if (isMainRoute && location != '/dashboard') {
           context.go('/dashboard');
           setState(() => _selectedIndex = 0);
         } else if (location == '/dashboard') {
-          // Show exit confirmation on dashboard
           final shouldExit = await _showExitDialog();
           if (shouldExit == true) {
             SystemNavigator.pop();
           }
         } else {
-          // For other routes, navigate back normally
           context.pop();
         }
       },
       child: Scaffold(
         body: widget.child,
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                color: isDark ? const Color(0xFF2A3547) : const Color(0xFFE5E7EB),
-                width: 1,
+        // Hide bottom nav on AI chat — no overlap with the send bar
+        bottomNavigationBar: isOnAiChat
+            ? null
+            : Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF2A3547)
+                          : const Color(0xFFE5E7EB),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: BottomNavigationBar(
+                  currentIndex: _selectedIndex,
+                  onTap: _onItemTapped,
+                  items: const [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.dashboard_outlined),
+                      activeIcon: Icon(Icons.dashboard),
+                      label: 'Dashboard',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.assignment_outlined),
+                      activeIcon: Icon(Icons.assignment),
+                      label: 'Orders',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.inventory_2_outlined),
+                      activeIcon: Icon(Icons.inventory_2),
+                      label: 'Inventory',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.notifications_outlined),
+                      activeIcon: Icon(Icons.notifications),
+                      label: 'Alerts',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.settings_outlined),
+                      activeIcon: Icon(Icons.settings),
+                      label: 'Settings',
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
-          child: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
-            items: [
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard_outlined),
-                activeIcon: Icon(Icons.dashboard),
-                label: 'Dashboard',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.assignment_outlined),
-                activeIcon: Icon(Icons.assignment),
-                label: 'Orders',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.inventory_2_outlined),
-                activeIcon: Icon(Icons.inventory_2),
-                label: 'Inventory',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.notifications_outlined),
-                activeIcon: Icon(Icons.notifications),
-                label: 'Alerts',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.settings_outlined),
-                activeIcon: Icon(Icons.settings),
-                label: 'Settings',
-              ),
-            ],
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => context.go('/ai-chat'),
-          backgroundColor: const Color(0xFF1565C0),
-          foregroundColor: Colors.white,
-          elevation: 4,
-          tooltip: 'ForgeOps AI',
-          child: const Icon(Icons.smart_toy_outlined),
-        ),
+        // AI FAB only on Dashboard — hidden everywhere else
+        floatingActionButton: isOnDashboard
+            ? FloatingActionButton(
+                onPressed: () => context.go('/ai-chat'),
+                backgroundColor: const Color(0xFF1565C0),
+                foregroundColor: Colors.white,
+                elevation: 4,
+                tooltip: 'ForgeOps AI',
+                child: const Icon(Icons.smart_toy_outlined),
+              )
+            : null,
       ),
     );
   }

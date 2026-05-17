@@ -1,0 +1,1 @@
+import 'dart:convert'; import 'package:crypto/crypto.dart'; void main() { final salt = '2310ee7895d11e44ffda4f0702557fb658fc2a912d01d7315e17734db7547113'; final pin = '866866'; final bytes = utf8.encode(pin + salt); final hash = sha256.convert(bytes); print('Hash: ' + hash.toString()); }

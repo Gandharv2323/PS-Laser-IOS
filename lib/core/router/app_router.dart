@@ -37,6 +37,9 @@ class AppRouter {
         if (isLoggedIn && (isLoginRoute || isRegisterRoute)) return '/dashboard';
         return null;
       },
+      // Safety net: any routing error (e.g. during logout transition)
+      // shows the login screen instead of a crash page or blank screen.
+      errorBuilder: (context, state) => const LoginScreen(),
       routes: [
         GoRoute(
           path: '/login',

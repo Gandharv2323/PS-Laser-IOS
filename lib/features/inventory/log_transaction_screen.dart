@@ -152,7 +152,7 @@ class _LogTransactionScreenState extends State<LogTransactionScreen> {
               const SizedBox(height: 8),
               if (_items.isNotEmpty)
                 DropdownButtonFormField<String>(
-                  value: _selectedItem,
+                  initialValue: _selectedItem,
                   onChanged: (v) => setState(() => _selectedItem = v),
                   decoration: _inputDec(context),
                   items: _items

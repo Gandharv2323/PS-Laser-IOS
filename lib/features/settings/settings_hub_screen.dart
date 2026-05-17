@@ -228,27 +228,32 @@ class SettingsHubScreen extends StatelessWidget {
                 subtitle: 'Sign out of your account',
                 color: AppTheme.accentRed,
                 onTap: () async {
+                  // Capture router & provider BEFORE any async gap so the
+                  // context remains valid even after the dialog is dismissed.
                   final sessionProv = context.read<SessionProvider>();
+                  final router = GoRouter.of(context);
                   final confirmed = await showDialog<bool>(
                     context: context,
-                    builder: (_) => AlertDialog(
+                    builder: (dialogCtx) => AlertDialog(
                       title: const Text('Confirm Logout'),
                       content: const Text('Are you sure you want to log out?'),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.pop(context, false),
+                          onPressed: () => Navigator.of(dialogCtx).pop(false),
                           child: const Text('Cancel'),
                         ),
                         ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
+                          onPressed: () => Navigator.of(dialogCtx).pop(true),
                           child: const Text('Logout'),
                         ),
                       ],
                     ),
                   );
-                  if (confirmed == true && context.mounted) {
-                    await sessionProv.logout();
-                    if (context.mounted) context.go('/login');
+                  if (confirmed == true) {
+                    // Clear session state first
+                    await sessionProv.logout(
+                      onLoggedOut: () => router.go('/login'),
+                    );
                   }
                 },
               ),
@@ -890,19 +895,20 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _showAddUserDialog() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         title: const Text('Add User'),
         content: const Text(
           'User creation feature requires full employee onboarding workflow.\n\nFor now, users can be added directly to the database.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            // Use dialogCtx so the dialog can close itself
+            onPressed: () => Navigator.of(dialogCtx).pop(),
             child: const Text('Close'),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.of(dialogCtx).pop();
               context.go('/settings/developer-tools');
             },
             child: const Text('Developer Tools'),
@@ -1473,64 +1479,79 @@ class _SystemConfigScreenState extends State<SystemConfigScreen> {
   }
 
   void _showWorkingHoursDialog() {
+    final options = ['6 hours', '7 hours', '8 hours', '9 hours', '10 hours'];
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Working Hours'),
-        content: RadioGroup<String>(
-          groupValue: _workingHours,
-          onChanged: (v) {
-            if (v != null) {
-              setState(() => _workingHours = v);
-              Navigator.pop(context);
-            }
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: ['6 hours', '7 hours', '8 hours', '9 hours', '10 hours']
-                .map((h) => RadioListTile<String>(value: h, title: Text(h)))
-                .toList(),
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Standard Working Hours'),
+          content: RadioGroup<String>(
+            groupValue: _workingHours,
+            onChanged: (v) {
+              if (v != null) {
+                setDialogState(() {});
+                setState(() => _workingHours = v);
+                Navigator.of(dialogCtx).pop();
+              }
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options
+                  .map(
+                    (h) => RadioListTile<String>(
+                      value: h,
+                      title: Text(h),
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
       ),
     );
   }
 
   void _showOvertimeRateDialog() {
+    final options = ['1.0x', '1.25x', '1.5x', '2.0x'];
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Overtime Rate'),
-        content: RadioGroup<String>(
-          groupValue: _overtimeRate,
-          onChanged: (v) {
-            if (v != null) {
-              setState(() => _overtimeRate = v);
-              Navigator.pop(context);
-            }
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: ['1.0x', '1.25x', '1.5x', '2.0x']
-                .map((r) => RadioListTile<String>(
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Overtime Rate'),
+          content: RadioGroup<String>(
+            groupValue: _overtimeRate,
+            onChanged: (v) {
+              if (v != null) {
+                setDialogState(() {});
+                setState(() => _overtimeRate = v);
+                Navigator.of(dialogCtx).pop();
+              }
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options
+                  .map(
+                    (r) => RadioListTile<String>(
                       value: r,
                       title: Text('$r base salary'),
-                    ))
-                .toList(),
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
       ),
     );
   }

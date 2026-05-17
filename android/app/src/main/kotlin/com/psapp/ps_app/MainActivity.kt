@@ -1,4 +1,4 @@
-package com.psapp.ps_app
+package com.pslaser.pslaser
 
 import io.flutter.embedding.android.FlutterActivity
 
